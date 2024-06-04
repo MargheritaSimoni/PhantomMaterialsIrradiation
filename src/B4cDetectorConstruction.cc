@@ -110,11 +110,11 @@ G4VPhysicalVolume* B4cDetectorConstruction::DefineVolumes()
 {
     // Geometry parameters
     // world
-    G4double worldSizeXY = 20. *cm;
-    G4double worldSizeZ  = 20. *cm;
+    G4double worldSizeXY = 25. *cm;
+    G4double worldSizeZ  = 25. *cm;
 
     //detector
-    G4double detectorXY =  10.*cm;
+    G4double detectorXY =  20.*cm;
     G4double detectorZ =  0.5*mm;
 
     //air layer in front of the detector used to count neutrons
@@ -122,8 +122,8 @@ G4VPhysicalVolume* B4cDetectorConstruction::DefineVolumes()
     G4double airLayerZ =  detectorZ;
 
     //Polymer solid
-    G4double dimPolymerXY=10.*cm;
-    G4double dimPolymerZ=10.*cm;
+    G4double dimPolymerXY=20.*cm;
+    G4double dimPolymerZ=6.648923595886213*cm;
 
     // Positions
     G4double samplePosition= 0.0; //

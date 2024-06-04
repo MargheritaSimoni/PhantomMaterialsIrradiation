@@ -136,13 +136,19 @@ void B4cEventAction::EndOfEventAction(const G4Event* event)
 
     // fill histograms
     if(gapHit->GetENeutrons()>=0 ){
+        bool check = false;
         //if(gapHit->GetXpos()>=-25 && gapHit->GetYpos()>=-25 && gapHit->GetXpos()<=25 && gapHit->GetYpos()<=25){
-        analysisManager->FillH1(0, gapHit->GetENeutrons());}//}
-
-    if(gapHit->GetXpos()>-888 && gapHit->GetYpos()>-888){
-        analysisManager->FillH2(0, gapHit->GetXpos(), gapHit->GetYpos());}
-
-    analysisManager->FillH2(1, generatorPosition[0], generatorPosition[1]);
+        analysisManager->FillH1(0, gapHit->GetENeutrons());
+        if(gapHit->GetXpos()>=-25 && gapHit->GetYpos()>=-25 && gapHit->GetXpos()<=25 && gapHit->GetYpos()<=25){
+            analysisManager->FillH1(1, gapHit->GetENeutrons());
+            check = true;
+        }
+        analysisManager->FillH2(0, gapHit->GetXpos(), gapHit->GetYpos());
+        if(check == true){
+            analysisManager->FillH2(1, gapHit->GetXpos(), gapHit->GetYpos());
+        }
+    }//}
+    analysisManager->FillH2(2, generatorPosition[0], generatorPosition[1]);
 
     // fill ntuple
     analysisManager->FillNtupleDColumn(0, gapHit->GetENeutrons());

@@ -31,14 +31,21 @@ B4RunAction::B4RunAction()
     //
     
     // Creating histograms // name and description of istograms
-    analysisManager->CreateH1("ENeutron","Neutron Energy in Detector",200, 1.e-04*eV, 100*eV,"eV","none","log"); // third entry is type of binning (log binning)//nb min can't be 0 in log scale//nb da anche il max dell'istogramma
+    analysisManager->CreateH1("ENeutron","Neutron Energy in Detector",200, 0.5e-04*eV, 200*eV,"eV","none","log"); // third entry is type of binning (log binning)//nb min can't be 0 in log scale//nb da anche il max dell'istogramma
     analysisManager->SetH1XAxisTitle(0, "Energy [eV]");
 
-    analysisManager->CreateH2("DetPos","Position in detector", 200, -5.*cm, 5.*cm, 200, -5.*cm, 5.*cm, "cm", "cm");
+    analysisManager->CreateH1("TENeutron","Transmitted neutron Energy ",200, 0.5e-04*eV, 200*eV,"eV","none","log"); // third entry is type of binning (log binning)//nb min can't be 0 in log scale//nb da anche il max dell'istogramma
+    analysisManager->SetH1XAxisTitle(0, "Energy [eV]");
+
+    analysisManager->CreateH2("DetPos","Position in detector", 200, -10.*cm, 10.*cm, 200, -10.*cm, 10.*cm, "cm", "cm");
     analysisManager->SetH2XAxisTitle(0, "x [cm]");
     analysisManager->SetH2YAxisTitle(0, "y [cm]");
 
-    analysisManager->CreateH2("GenPos","Generator Position", 200, -5.*cm, 5.*cm, 200, -5.*cm, 5.*cm, "cm", "cm");
+    analysisManager->CreateH2("TPos","Position in transmission detector", 200, -2.6*cm, 2.6*cm, 200, -2.6*cm, 2.6*cm, "cm", "cm");
+    analysisManager->SetH2XAxisTitle(0, "x [cm]");
+    analysisManager->SetH2YAxisTitle(0, "y [cm]");
+
+    analysisManager->CreateH2("GenPos","Generator Position", 200, -2.6*cm, 2.6*cm, 200, -2.6*cm, 2.6*cm, "cm", "cm");
     analysisManager->SetH2XAxisTitle(1, "x [cm]");
     analysisManager->SetH2YAxisTitle(1, "y [cm]");
 
