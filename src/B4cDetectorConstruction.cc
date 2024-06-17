@@ -99,6 +99,8 @@ void B4cDetectorConstruction::DefineMaterials()
     G4Material * matPP_NC = G4NCrystal::createMaterial("PP.ncmat");
     matPP_NC->SetName("NC_POLYPROPYLENE");
 
+    G4Material * matH2O_NC = G4NCrystal::createMaterial("LiquidWaterH2O_T293.6K.ncmat");
+    matH2O_NC->SetName("NC_WATER");
 
     // Print materials
     G4cout << *(G4Material::GetMaterialTable()) << G4endl;
@@ -122,19 +124,19 @@ G4VPhysicalVolume* B4cDetectorConstruction::DefineVolumes()
     G4double airLayerZ =  detectorZ;
 
     //Polymer solid
-    G4double dimPolymerXY=20.*cm;
-    G4double dimPolymerZ=6.648923595886213*cm;
+    G4double dimPolymerXY=10.*cm;//20.*cm;
+    G4double dimPolymerZ=7.*cm;//6.648923595886213*cm;
 
     // Positions
     G4double samplePosition= 0.0; //
-    G4double detectorPosition= dimPolymerZ/2.+detectorZ+0.5*mm;
+    G4double detectorPosition= dimPolymerZ/2.+detectorZ+0.5.q*cm;//0.5*mm;
 
     //remember to check beam size inside primary generator action
 
     fNofLayers = 1;
 
     // Get materials
-    auto polymer = G4Material::GetMaterial("NC_PLEXIGLASS"); //G4_PLEXIGLASS_NC
+    auto polymer = G4Material::GetMaterial("G4_WATER");
     auto worldMaterial = G4Material::GetMaterial("Galactic");
 
     if (  !polymer ||  !worldMaterial) {

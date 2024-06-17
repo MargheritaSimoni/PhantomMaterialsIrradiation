@@ -1,23 +1,10 @@
-# Macro file for example B4 test
+# it's initialized inside main to install NCrystal
+#/run/initialize
 
-/run/initialize
+/gun/particle neutron
+/gun/energy 0.05 eV
 
-# e+ 300MeV 
-/gun/particle e+
-/gun/energy 300 MeV
-/run/beamOn 1
-#
-# list the existing physics processes
-/process/list
-#
-# switch off MultipleScattering
-/process/inactivate msc
-/run/beamOn 1
-#
-# switch on MultipleScattering
-/process/activate msc 
-#
-# change detector parameter
-/gun/particle gamma
-/gun/energy 500 MeV
-/run/beamOn 1
+/gun/direction 0 0 1
+
+/run/printProgress 10000
+/run/beamOn 100000

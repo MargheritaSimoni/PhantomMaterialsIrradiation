@@ -71,6 +71,7 @@ set(EXAMPLEB4C_SCRIPTS
   plotNtuple.C
   run1.mac
   vis.mac
+  scriptLoop.mac
   sourceMacroMaterials.txt
   )
 

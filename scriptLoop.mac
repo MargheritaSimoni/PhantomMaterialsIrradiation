@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# Define the energy values
+energy_values=("100") #eV ("1" "100")
+
+#Define list of materials
+materialsNC=("PMMA_NC" "PVC_NC" "PP_NC" "H2O_NC")
+materialsG4=("PMMA_G4" "PVC_G4" "PP_G4" "H2O_G4")
+
+# Define materials
+PMMA_NC="auto polymer = G4Material::GetMaterial(\"NC_PLEXIGLASS\");"
+PVC_NC="auto polymer = G4Material::GetMaterial(\"NC_POLYVINYL_CHLORIDE\");"
+PP_NC="auto polymer = G4Material::GetMaterial(\"NC_POLYPROPYLENE\");"
+H2O_NC="auto polymer = G4Material::GetMaterial(\"NC_WATER\");"
+
+PMMA_G4="auto polymer = G4Material::GetMaterial(\"G4_PLEXIGLASS\");"
+PVC_G4="auto polymer = G4Material::GetMaterial(\"G4_POLYVINYL_CHLORIDE\");"
+PP_G4="auto polymer = G4Material::GetMaterial(\"G4_POLYPROPYLENE\");"
+H2O_G4="auto polymer = G4Material::GetMaterial(\"G4_WATER\");"
+
+# Define DetectorConstruction path
+DC="../src/B4cDetectorConstruction.cc"
+
+
+# Get the 9th line of run1.mac to Get number of neutrons
+neutrons=$(sed -n '9p' run1.mac)
+
+# Write the 9th line of run1.mac to OUT.txt
+echo "Running with: $neutrons neutrons" > OUT.txt
+
+for material in "${materialsNC[@]}"; do
+        polymer=${!material}
+	sed -i "139s/.*/${polymer}/g" "$DC"
+	echo "Running with ${material} material" | tee -a OUT.txt
+	make > make_output.txt 2>&1
+
+	# Loop over each energy value
+	for energy in "${energy_values[@]}"; do
+	    # Change energy
+	    sed -i "5s/.*/\/gun\/energy ${energy} eV/" run1.mac
+	    echo "Running with energy ${energy} eV" | tee -a OUT.txt
+	    { time ./exampleB4c -m run1.mac | grep "Will use this space to grep transmission later" | wc -l; } 2>&1 | tee -a OUT.txt
+	    mv B4.root "B4_${energy}eV_${material}.root"
+	done
+done
+
+for material in "${materialsG4[@]}"; do
+        polymer=${!material}
+	sed -i "139s/.*/${polymer}/g" "$DC"
+	echo "Running with ${material} material" | tee -a OUT.txt
+	make >> make_output.txt 2>&1
+
+	# Loop over each energy value
+	for energy in "${energy_values[@]}"; do
+	    # Change energy
+	    sed -i "5s/.*/\/gun\/energy ${energy} eV/" run1.mac
+	    echo "Running with energy ${energy} eV" | tee -a OUT.txt
+	    { time ./exampleB4c -m run1.mac | grep "Will use this space to grep transmission later" | wc -l; } 2>&1 | tee -a OUT.txt
+	    mv B4.root "B4_${energy}eV_${material}.root"
+	done
+done
