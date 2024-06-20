@@ -57,6 +57,22 @@ target_link_libraries(exampleB4c ${Geant4_LIBRARIES})
 find_package(NCrystal REQUIRED COMPONENTS GEANT4BINDINGS )
 target_link_libraries(exampleB4c NCrystal::G4NCrystal)
 
+# Add this line to define the macro USE_GPS to use GeneralParticlaSource instead of ParticleGun
+# Define an option to enable or disable GPS support
+option(USE_GPS "Enable GPS support" ON) #to disable use : cmake -DUSE_GPS=OFF .. 
+
+# Check if the USE_GPS option is set to ON
+if(USE_GPS)
+    # Add the preprocessor definition -DUSE_GPS
+    add_definitions(-DUSE_GPS)
+endif()
+
+#defining my own variable for multithreading, G4MULTITHREAD is defined in geant installation and can't be undefined inside code
+option(MY_MULTITHREADED "Enable Geant4 multi-threaded support" ON)
+
+if(MY_MULTITHREADED)
+    add_definitions(-DMY_MULTITHREADED)
+endif()
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we
 # build B4c. This is so that we can run the executable directly because it
@@ -70,6 +86,7 @@ set(EXAMPLEB4C_SCRIPTS
   plotHisto.C
   plotNtuple.C
   run1.mac
+  gps.mac
   vis.mac
   scriptLoop.mac
   sourceMacroMaterials.txt

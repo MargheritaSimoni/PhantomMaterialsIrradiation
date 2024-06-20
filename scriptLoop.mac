@@ -1,22 +1,34 @@
 #!/bin/bash
 
 # Define the energy values
-energy_values=("100") #eV ("1" "100")
-
+energy_values=("1000") #eV ("1" "100")
+macro="gps.mac"
 #Define list of materials
-materialsNC=("PMMA_NC" "PVC_NC" "PP_NC" "H2O_NC")
-materialsG4=("PMMA_G4" "PVC_G4" "PP_G4" "H2O_G4")
+materialsNC=("PMMA_NC" "PP_NC" "H2O_NC")
+materialsG4=("PMMA_G4" "PP_G4" "H2O_G4")
 
 # Define materials
 PMMA_NC="auto polymer = G4Material::GetMaterial(\"NC_PLEXIGLASS\");"
-PVC_NC="auto polymer = G4Material::GetMaterial(\"NC_POLYVINYL_CHLORIDE\");"
+#PVC_NC="auto polymer = G4Material::GetMaterial(\"NC_POLYVINYL_CHLORIDE\");"
 PP_NC="auto polymer = G4Material::GetMaterial(\"NC_POLYPROPYLENE\");"
 H2O_NC="auto polymer = G4Material::GetMaterial(\"NC_WATER\");"
 
 PMMA_G4="auto polymer = G4Material::GetMaterial(\"G4_PLEXIGLASS\");"
-PVC_G4="auto polymer = G4Material::GetMaterial(\"G4_POLYVINYL_CHLORIDE\");"
+#PVC_G4="auto polymer = G4Material::GetMaterial(\"G4_POLYVINYL_CHLORIDE\");"
 PP_G4="auto polymer = G4Material::GetMaterial(\"G4_POLYPROPYLENE\");"
 H2O_G4="auto polymer = G4Material::GetMaterial(\"G4_WATER\");"
+
+#thickness forr each material
+PMMA_NC_Z="G4double dimPolymerZ=8.31558966502756*cm;"
+#PVC_NC_Z="G4double dimPolymerZ=409.66403708192297*cm;"
+PP_NC_Z="G4double dimPolymerZ=5.905955523515783*cm;"
+H2O_NC_Z="G4double dimPolymerZ=7.714852819736141*cm;"
+
+PMMA_G4_Z="G4double dimPolymerZ=8.31558966502756*cm;"
+#PVC_G4_Z="G4double dimPolymerZ=409.66403708192297*cm;"
+PP_G4_Z="G4double dimPolymerZ=5.905955523515783*cm;"
+H2O_G4_Z="G4double dimPolymerZ=7.714852819736141*cm;"
+
 
 # Define DetectorConstruction path
 DC="../src/B4cDetectorConstruction.cc"
@@ -27,35 +39,41 @@ neutrons=$(sed -n '9p' run1.mac)
 
 # Write the 9th line of run1.mac to OUT.txt
 echo "Running with: $neutrons neutrons" > OUT.txt
-
+echo "make OUT:" > make_output.txt
 for material in "${materialsNC[@]}"; do
         polymer=${!material}
+        Z=${material}_Z
+        thickness=${!Z}
 	sed -i "139s/.*/${polymer}/g" "$DC"
+	sed -i "128s/.*/${thickness}/g" "$DC"
 	echo "Running with ${material} material" | tee -a OUT.txt
-	make > make_output.txt 2>&1
+	make >> make_output.txt 
 
 	# Loop over each energy value
 	for energy in "${energy_values[@]}"; do
 	    # Change energy
-	    sed -i "5s/.*/\/gun\/energy ${energy} eV/" run1.mac
+	    sed -i "5s/.*/\/gps\/energy ${energy} eV/" ${macro}
 	    echo "Running with energy ${energy} eV" | tee -a OUT.txt
-	    { time ./exampleB4c -m run1.mac | grep "Will use this space to grep transmission later" | wc -l; } 2>&1 | tee -a OUT.txt
+	    { time ./exampleB4c -m ${macro} | grep "Will use this space to grep transmission later" | wc -l; } 2>&1 | tee -a OUT.txt
 	    mv B4.root "B4_${energy}eV_${material}.root"
 	done
 done
 
 for material in "${materialsG4[@]}"; do
         polymer=${!material}
+        Z=${material}_Z
+        thickness=${!Z}
 	sed -i "139s/.*/${polymer}/g" "$DC"
+	sed -i "128s/.*/${thickness}/g" "$DC"
 	echo "Running with ${material} material" | tee -a OUT.txt
-	make >> make_output.txt 2>&1
+	make >> make_output.txt 
 
 	# Loop over each energy value
 	for energy in "${energy_values[@]}"; do
 	    # Change energy
-	    sed -i "5s/.*/\/gun\/energy ${energy} eV/" run1.mac
+	    sed -i "5s/.*/\/gps\/energy ${energy} eV/" ${macro}
 	    echo "Running with energy ${energy} eV" | tee -a OUT.txt
-	    { time ./exampleB4c -m run1.mac | grep "Will use this space to grep transmission later" | wc -l; } 2>&1 | tee -a OUT.txt
+	    { time ./exampleB4c -m ${macro} | grep "Will use this space to grep transmission later" | wc -l; } 2>&1 | tee -a OUT.txt
 	    mv B4.root "B4_${energy}eV_${material}.root"
 	done
 done

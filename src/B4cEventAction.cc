@@ -94,10 +94,10 @@ void B4cEventAction::EndOfEventAction(const G4Event* event)
 
     // Get hits collections
     auto gapHC = GetHitsCollection(fAbsHCID, event);
-    auto absoHC = GetHitsCollection(fGapHCID, event);
+    //auto absoHC = GetHitsCollection(fGapHCID, event);
 
     // Get hit with total values
-    auto absoHit = (*absoHC)[absoHC->entries()-1];
+    //auto absoHit = (*absoHC)[absoHC->entries()-1];
     auto gapHit = (*gapHC)[gapHC->entries()-1];
 
 

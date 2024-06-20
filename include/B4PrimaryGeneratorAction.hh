@@ -31,7 +31,11 @@ public:
 
 private:
 
+    #ifdef USE_GPS
+    G4GeneralParticleSource* fGPS;
+    #else
     G4ParticleGun* fParticleGun;
+    #endif
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

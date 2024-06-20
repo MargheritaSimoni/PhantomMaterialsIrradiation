@@ -125,18 +125,18 @@ G4VPhysicalVolume* B4cDetectorConstruction::DefineVolumes()
 
     //Polymer solid
     G4double dimPolymerXY=10.*cm;//20.*cm;
-    G4double dimPolymerZ=7.*cm;//6.648923595886213*cm;
+G4double dimPolymerZ=7.714852819736141*cm;
 
     // Positions
     G4double samplePosition= 0.0; //
-    G4double detectorPosition= dimPolymerZ/2.+detectorZ+0.5.q*cm;//0.5*mm;
+    G4double detectorPosition= dimPolymerZ/2.+detectorZ+0.5*cm;//0.5*mm;
 
     //remember to check beam size inside primary generator action
 
     fNofLayers = 1;
 
     // Get materials
-    auto polymer = G4Material::GetMaterial("G4_WATER");
+auto polymer = G4Material::GetMaterial("G4_WATER");
     auto worldMaterial = G4Material::GetMaterial("Galactic");
 
     if (  !polymer ||  !worldMaterial) {
