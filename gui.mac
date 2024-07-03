@@ -22,6 +22,8 @@
 /gui/addButton gun "pi+"     "/gun/particle pi+"
 /gui/addButton gun "neutron" "/gun/particle neutron"
 /gui/addButton gun "proton"  "/gun/particle proton"
+/gui/addMenu vis Visualization
+/gui/addButton vis "Draw Axes" "/vis/scene/add/axes 0 0 0 20 cm"
 #
 # Vis menu :
 /gui/addMenu vis Vis

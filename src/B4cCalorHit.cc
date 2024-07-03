@@ -20,7 +20,10 @@ B4cCalorHit::B4cCalorHit()
    fNeutrons(0),
    eNeutron(-999),
    xPos(-999),
-   yPos(-999)
+   yPos(-999),
+   boundaryVector(-1000,-1000,-1000),
+   boundaryEnergy(-999),
+   gammaEnergies()
 {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -38,6 +41,9 @@ B4cCalorHit::B4cCalorHit(const B4cCalorHit& right)
     eNeutron = right.eNeutron;
     xPos = right.xPos;
     yPos = right.yPos;
+    boundaryVector = right.boundaryVector;
+    boundaryEnergy = right.boundaryEnergy;
+    gammaEnergies = right.gammaEnergies;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -50,7 +56,9 @@ const B4cCalorHit& B4cCalorHit::operator=(const B4cCalorHit& right)
     eNeutron = right.eNeutron;
     xPos = right.xPos;
     yPos = right.yPos;
-
+    boundaryVector = right.boundaryVector;
+    boundaryEnergy = right.boundaryEnergy;
+    gammaEnergies = right.gammaEnergies;
   return *this;
 }
 
@@ -75,12 +83,21 @@ void B4cCalorHit::Print()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void B4cCalorHit::AddNeutron(G4double neutronE) {
+void B4cCalorHit::AddNeutronInDetector(G4double neutronE) {
         fNeutrons += 1;
         eNeutron = neutronE;
    };
 
-void B4cCalorHit::AddPosition(G4double posx, G4double posy) {
+void B4cCalorHit::AddPositionInDetector(G4double posx, G4double posy) {
     xPos = posx;
     yPos = posy;
+};
+
+void B4cCalorHit::AddBoundaryTracking(G4ThreeVector posOnBoundary, G4double EOnBoundary){
+    boundaryVector = posOnBoundary;
+    boundaryEnergy = EOnBoundary;
+};
+
+void B4cCalorHit::AddGammasInFoil(std::vector<G4double> EGammas){
+    gammaEnergies = EGammas;
 };

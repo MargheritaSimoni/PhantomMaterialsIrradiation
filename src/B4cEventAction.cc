@@ -19,8 +19,9 @@
 
 B4cEventAction::B4cEventAction()
         : G4UserEventAction(),
-          fAbsHCID(-1),
-          fGapHCID(-1)
+          fFoilHCID(-1),
+          fdetectorHCID(-1),
+          fSampleHCID(-1)
 {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -85,20 +86,32 @@ void B4cEventAction::BeginOfEventAction(const G4Event* /*event*/)
 void B4cEventAction::EndOfEventAction(const G4Event* event)
 {
     // Get hits collections IDs (only once)
-    if ( fAbsHCID == -1 ) {
-        fAbsHCID
-                = G4SDManager::GetSDMpointer()->GetCollectionID("airLayerHitsCollection");
-        fGapHCID
+    if ( fFoilHCID == -1 ) {
+        fFoilHCID
+                = G4SDManager::GetSDMpointer()->GetCollectionID("foilHitsCollection");
+    }
+
+    if ( fdetectorHCID == -1 ) {
+        fdetectorHCID
                 = G4SDManager::GetSDMpointer()->GetCollectionID("detectorHitsCollection");
     }
 
+    if ( fSampleHCID == -1 ) {
+        fSampleHCID
+                = G4SDManager::GetSDMpointer()->GetCollectionID("sampleHitsCollection");
+    }
     // Get hits collections
-    auto gapHC = GetHitsCollection(fAbsHCID, event);
-    //auto absoHC = GetHitsCollection(fGapHCID, event);
+    auto detectorHC = GetHitsCollection(fdetectorHCID, event);
+    auto sampleHC = GetHitsCollection(fSampleHCID, event);
+    auto foilHC = GetHitsCollection(fFoilHCID, event);
+
+    //auto absoHC = GetHitsCollection(fAbsHCID, event);
 
     // Get hit with total values
     //auto absoHit = (*absoHC)[absoHC->entries()-1];
-    auto gapHit = (*gapHC)[gapHC->entries()-1];
+    auto detectorHit = (*detectorHC)[detectorHC->entries()-1];
+    auto sampleHit = (*sampleHC)[sampleHC->entries()-1];
+    auto foilHit = (*foilHC)[foilHC->entries()-1];
 
 
     //Raccoglie le informazioni sull'evento primario
@@ -121,9 +134,9 @@ void B4cEventAction::EndOfEventAction(const G4Event* event)
         G4cout << "---> End of event: " << eventID << G4endl;
 
         PrintEventStatistics(
-                gapHit->GetNNeutrons(), gapHit->GetENeutrons(),
-                gapHit->GetEdep(),
-                gapHit->GetXpos(), gapHit->GetYpos(), generatorPosition);
+                detectorHit->GetNNeutronsInDetector(), detectorHit->GetENeutronsInDetector(),
+                detectorHit->GetEdep(),
+                detectorHit->GetXposInDetector(), detectorHit->GetYposInDetector(), generatorPosition);
     }
 
     // Fill histograms, ntuple
@@ -134,26 +147,44 @@ void B4cEventAction::EndOfEventAction(const G4Event* event)
 
     //Qui salva le informazioni nel tree e negli istogrammi, la funzione GetNPhotons() è definita nel CalorHit.hh e semplicemente legge il numero di fotoni salvato nella variabile fPhotons della collezione di hit.
 
-    // fill histograms
-    if(gapHit->GetENeutrons()>=0 ){
+    ///////////////////////// fill histograms //////////////////////////
+    //Detector
+    if(detectorHit->GetENeutronsInDetector()>=0 ){
         bool check = false;
-        //if(gapHit->GetXpos()>=-25 && gapHit->GetYpos()>=-25 && gapHit->GetXpos()<=25 && gapHit->GetYpos()<=25){
-        analysisManager->FillH1(0, gapHit->GetENeutrons());
-        if(gapHit->GetXpos()>=-25 && gapHit->GetYpos()>=-25 && gapHit->GetXpos()<=25 && gapHit->GetYpos()<=25){
-            analysisManager->FillH1(1, gapHit->GetENeutrons());
+        analysisManager->FillH1(0, detectorHit->GetENeutronsInDetector());
+        if(detectorHit->GetXposInDetector()>=-25 && detectorHit->GetYposInDetector()>=-25 && detectorHit->GetXposInDetector()<=25 && detectorHit->GetYposInDetector()<=25){
+            analysisManager->FillH1(1, detectorHit->GetENeutronsInDetector());
             check = true;
         }
-        analysisManager->FillH2(0, gapHit->GetXpos(), gapHit->GetYpos());
+        analysisManager->FillH2(0, detectorHit->GetXposInDetector(), detectorHit->GetYposInDetector());
         if(check == true){
-            analysisManager->FillH2(1, gapHit->GetXpos(), gapHit->GetYpos());
+            analysisManager->FillH2(1, detectorHit->GetXposInDetector(), detectorHit->GetYposInDetector());
         }
     }//}
     analysisManager->FillH2(2, generatorPosition[0], generatorPosition[1]);
 
+    //Sample
+    if(sampleHit->GetBoundaryEnergy()>=0 ) {
+        analysisManager->FillH1(2, sampleHit->GetBoundaryEnergy());
+        analysisManager->FillH1(3, sampleHit->GetBoundaryPosition().z());
+    }
+
+    std::vector<G4double> gammaEnergies = foilHit->GetGammaFoilEnergies();
+// Check if the vector is not empty
+    if (!gammaEnergies.empty()) {
+        for (G4double energy : gammaEnergies) {
+                analysisManager->FillH1(4, energy);
+        }
+    }
+
+    if(sampleHit->GetBoundaryPosition().x()>=10./2*CLHEP::cm ) {
+        analysisManager->FillH1(5, sampleHit->GetBoundaryEnergy());
+    }
+
     // fill ntuple
-    analysisManager->FillNtupleDColumn(0, gapHit->GetENeutrons());
-    analysisManager->FillNtupleDColumn(1, gapHit->GetXpos());
-    analysisManager->FillNtupleDColumn(2, gapHit->GetYpos());
+    analysisManager->FillNtupleDColumn(0, detectorHit->GetENeutronsInDetector());
+    analysisManager->FillNtupleDColumn(1, detectorHit->GetXposInDetector());
+    analysisManager->FillNtupleDColumn(2, detectorHit->GetYposInDetector());
     //analysisManager->FillNtupleDColumn(3, generatorPosition[0]);
     //analysisManager->FillNtupleDColumn(4, generatorPosition[1]);
 

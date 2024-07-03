@@ -76,6 +76,9 @@ void B4cDetectorConstruction::DefineMaterials()
     nistManager->FindOrBuildMaterial("G4_POLYVINYL_CHLORIDE");
     nistManager->FindOrBuildMaterial("G4_POLYPROPYLENE");
 
+    // Cd
+    nistManager->FindOrBuildMaterial("G4_Cd");
+
     // MATERIALS DEFINED USING THERMAL LIBRARIES CROSS SECTIONS
 //PMMA uses thermal XS of H inside polyethylene
     G4Element* elC = nistManager->FindOrBuildElement("C");
@@ -117,29 +120,30 @@ G4VPhysicalVolume* B4cDetectorConstruction::DefineVolumes()
 
     //detector
     G4double detectorXY =  20.*cm;
-    G4double detectorZ =  0.5*mm;
-
-    //air layer in front of the detector used to count neutrons
-    G4double airLayerXY =  detectorXY;
-    G4double airLayerZ =  detectorZ;
+    G4double detectorZ =  0.2*mm;
 
     //Polymer solid
     G4double dimPolymerXY=10.*cm;//20.*cm;
 G4double dimPolymerZ=7.714852819736141*cm;
 
+    //Cd foil
+    G4double foilCdX =  1*mm;
+    G4double foilCdY =  dimPolymerXY;
+    G4double foilCdZ =  dimPolymerZ;
+
     // Positions
-    G4double samplePosition= 0.0; //
-    G4double detectorPosition= dimPolymerZ/2.+detectorZ+0.5*cm;//0.5*mm;
-
-    //remember to check beam size inside primary generator action
-
+    G4double samplePositionZ= 0.0; //
+    G4double detectorPositionZ= dimPolymerZ/2.+detectorZ/2.+0.5*cm;//0.5*mm;
+    G4double foilPositionX= foilCdX/2 + dimPolymerXY/2 + 1*mm; //
+    
     fNofLayers = 1;
 
     // Get materials
 auto polymer = G4Material::GetMaterial("G4_WATER");
     auto worldMaterial = G4Material::GetMaterial("Galactic");
+    auto cadmium = G4Material::GetMaterial("G4_Cd");
 
-    if (  !polymer ||  !worldMaterial) {
+    if (  !polymer ||  !worldMaterial || !cadmium ) {
         G4ExceptionDescription msg;
         msg << "Cannot retrieve materials already defined.";
         G4Exception("B4DetectorConstruction::DefineVolumes()",
@@ -187,7 +191,7 @@ auto polymer = G4Material::GetMaterial("G4_WATER");
 
     new G4PVPlacement(
             0,                // no rotation
-            G4ThreeVector(0,0,detectorPosition+detectorZ/2),  // at (0,0,0)
+            G4ThreeVector(0,0,detectorPositionZ+detectorZ/2),  // at (0,0,0)
             detectorLV,          // its logical volume
             "Detector",    // its name
             worldLV,          // its mother  volume
@@ -199,20 +203,20 @@ auto polymer = G4Material::GetMaterial("G4_WATER");
     // air layer for detector
     //
 
-    auto airLayerS
-            = new G4Box("AirLayer",             // its name
-                        airLayerXY/2, airLayerXY/2, airLayerZ/2); // its size
+    auto foilCdS
+            = new G4Box("foilCd",             // its name
+                        foilCdX/2, foilCdY/2, foilCdZ/2); // its size
 
-    auto airLayerLV
+    auto foilCdLV
             = new G4LogicalVolume(
-                    airLayerS,             // its solid
-                    worldMaterial,      // its material
-                    "airLayerLV");         // its name
+                    foilCdS,             // its solid
+                    cadmium,      // its material
+                    "foilCdLV");         // its name
     new G4PVPlacement(
             0,                // no rotation
-            G4ThreeVector(0,0,detectorPosition-detectorZ/2), // its position
-            airLayerLV,            // its logical volume
-            "AirLayer",            // its name
+            G4ThreeVector(foilPositionX,0,0), // its position
+            foilCdLV,            // its logical volume
+            "foilCd",            // its name
             worldLV,          // its mother  volume
             false,            // no boolean operation
             0,                // copy number
@@ -232,7 +236,7 @@ auto polymer = G4Material::GetMaterial("G4_WATER");
                     "VolumePolymerLV");         // its name
     new G4PVPlacement(
             0,                // no rotation
-            G4ThreeVector(0,0,-samplePosition), // its position
+            G4ThreeVector(0,0,-samplePositionZ), // its position
             VolumePolymerLV,            // its logical volume
             "VolumePolymer",            // its name
             worldLV,          // its mother  volume
@@ -257,7 +261,10 @@ auto polymer = G4Material::GetMaterial("G4_WATER");
     visAttributesDetector->SetForceWireframe(true); // Display wireframe
     visAttributesDetector->SetForceSolid(true);
     detectorLV->SetVisAttributes(visAttributesDetector);
-    airLayerLV->SetVisAttributes(visAttributesDetector);
+
+    G4VisAttributes* visAttributesFoilCd = new G4VisAttributes(G4Colour(0.0, 1.0, 0.0, 0.5)); // Green color with 50% transparency
+    visAttributesFoilCd->SetForceSolid(true);
+    foilCdLV->SetVisAttributes(visAttributesFoilCd);
 
 
     //
@@ -275,17 +282,20 @@ void B4cDetectorConstruction::ConstructSDandField()
     //
     // Sensitive detectors
     //
-    //qui creo solo il sensitive detector ma in realtà non lo uso poi
+    auto foilSD
+    = new B4cCalorimeterSD("foilSD", "foilHitsCollection", fNofLayers);
+    G4SDManager::GetSDMpointer()->AddNewDetector(foilSD);
+    SetSensitiveDetector("foilCdLV",foilSD);
+
     auto detectorSD
-    = new B4cCalorimeterSD("detectorSD", "detectorHitsCollection", fNofLayers);
+            = new B4cCalorimeterSD("detectorSD", "detectorHitsCollection", fNofLayers);
     G4SDManager::GetSDMpointer()->AddNewDetector(detectorSD);
     SetSensitiveDetector("detectorLV",detectorSD);
 
-    //qui invece assegno il sensitive detector
-    auto airSD
-    = new B4cCalorimeterSD("airSD", "airLayerHitsCollection", fNofLayers);
-    G4SDManager::GetSDMpointer()->AddNewDetector(airSD);
-    SetSensitiveDetector("airLayerLV",airSD);
+    auto sampleSD
+    = new B4cCalorimeterSD("sampleSD", "sampleHitsCollection", fNofLayers);
+    G4SDManager::GetSDMpointer()->AddNewDetector(sampleSD);
+    SetSensitiveDetector("VolumePolymerLV",sampleSD);
 
     //
     // Magnetic field

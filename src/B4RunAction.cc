@@ -6,11 +6,15 @@
 #include "G4UnitsTable.hh"
 #include "G4SystemOfUnits.hh"
 
+#include "G4AccumulableManager.hh"
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 B4RunAction::B4RunAction()
 : G4UserRunAction()
-{ 
+{
+
+
     // set printing event number per each event
     G4RunManager::GetRunManager()->SetPrintProgress(1);
     
@@ -31,23 +35,42 @@ B4RunAction::B4RunAction()
     //
     
     // Creating histograms // name and description of istograms
-    analysisManager->CreateH1("ENeutron","Neutron Energy in Detector",200, 0.5e-04*eV, 1300*eV,"eV","none","log"); // third entry is type of binning (log binning)//nb min can't be 0 in log scale//nb da anche il max dell'istogramma
+    analysisManager->CreateH1("ENeutron","Neutron Energy in Detector",200, 0.5e-04*eV, 130*eV,"eV","none","log"); // third entry is type of binning (log binning)//nb min can't be 0 in log scale//nb da anche il max dell'istogramma
     analysisManager->SetH1XAxisTitle(0, "Energy [eV]");
+    analysisManager->SetH1YAxisTitle(0, "Counts");
 
-    analysisManager->CreateH1("TENeutron","Transmitted neutron Energy ",200, 0.5e-04*eV, 1300*eV,"eV","none","log"); // third entry is type of binning (log binning)//nb min can't be 0 in log scale//nb da anche il max dell'istogramma
-    analysisManager->SetH1XAxisTitle(0, "Energy [eV]");
+    analysisManager->CreateH1("TENeutron","Transmitted neutron Energy ",200, 0.5e-04*eV, 130*eV,"eV","none","log"); // third entry is type of binning (log binning)//nb min can't be 0 in log scale//nb da anche il max dell'istogramma
+    analysisManager->SetH1XAxisTitle(1, "Energy [eV]");
+    analysisManager->SetH1YAxisTitle(1, "Counts");
 
+    analysisManager->CreateH1("EBoundary","Energy on boundary of solid ",200, 0.5e-04*eV, 130*eV,"eV","none","log"); // third entry is type of binning (log binning)//nb min can't be 0 in log scale//nb da anche il max dell'istogramma
+    analysisManager->SetH1XAxisTitle(2, "Energy [eV]");
+    analysisManager->SetH1YAxisTitle(2, "Counts");
+
+    analysisManager->CreateH1("ZBoundary","Z coordinate on boundary of solid ",200, -5.*cm, 5.*cm,"cm"); // third entry is type of binning (log binning)//nb min can't be 0 in log scale//nb da anche il max dell'istogramma
+    analysisManager->SetH1XAxisTitle(3, "z [cm]");
+    analysisManager->SetH1YAxisTitle(3, "Counts");
+
+    analysisManager->CreateH1("EGamma","Energy of gamma from foil ",200, 10.*eV, 10*MeV,"MeV","none","log"); // third entry is type of binning (log binning)//nb min can't be 0 in log scale//nb da anche il max dell'istogramma
+    analysisManager->SetH1XAxisTitle(4, "Energy [MeV]");
+    analysisManager->SetH1YAxisTitle(4, "Counts");
+
+    analysisManager->CreateH1("ENside","Energy of neutrons that come out of one side ",200, 0.5e-04*eV, 130*eV,"eV","none","log"); // third entry is type of binning (log binning)//nb min can't be 0 in log scale//nb da anche il max dell'istogramma
+    analysisManager->SetH1XAxisTitle(5, "Energy [eV]");
+    analysisManager->SetH1YAxisTitle(5, "Counts");
+
+    //2D istograms
     analysisManager->CreateH2("DetPos","Position in detector", 200, -10.*cm, 10.*cm, 200, -10.*cm, 10.*cm, "cm", "cm");
     analysisManager->SetH2XAxisTitle(0, "x [cm]");
     analysisManager->SetH2YAxisTitle(0, "y [cm]");
 
     analysisManager->CreateH2("TPos","Position in transmission detector", 200, -2.6*cm, 2.6*cm, 200, -2.6*cm, 2.6*cm, "cm", "cm");
-    analysisManager->SetH2XAxisTitle(0, "x [cm]");
-    analysisManager->SetH2YAxisTitle(0, "y [cm]");
-
-    analysisManager->CreateH2("GenPos","Generator Position", 200, -2.6*cm, 2.6*cm, 200, -2.6*cm, 2.6*cm, "cm", "cm");
     analysisManager->SetH2XAxisTitle(1, "x [cm]");
     analysisManager->SetH2YAxisTitle(1, "y [cm]");
+
+    analysisManager->CreateH2("GenPos","Generator Position", 200, -2.6*cm, 2.6*cm, 200, -2.6*cm, 2.6*cm, "cm", "cm");
+    analysisManager->SetH2XAxisTitle(2, "x [cm]");
+    analysisManager->SetH2YAxisTitle(2, "y [cm]");
 
     // Creating ntuple
     //
@@ -73,7 +96,7 @@ void B4RunAction::BeginOfRunAction(const G4Run* /*run*/)
 { 
     //inform the runManager to save random number seed
     //G4RunManager::GetRunManager()->SetRandomNumberStore(true);
-    
+
     // Get analysis manager
     auto analysisManager = G4AnalysisManager::Instance();
     
@@ -85,8 +108,10 @@ void B4RunAction::BeginOfRunAction(const G4Run* /*run*/)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void B4RunAction::EndOfRunAction(const G4Run* /*run*/)
+void B4RunAction::EndOfRunAction(const G4Run* run)
 {
+
+
     // print histogram statistics
     //
     auto analysisManager = G4AnalysisManager::Instance();
@@ -99,21 +124,48 @@ void B4RunAction::EndOfRunAction(const G4Run* /*run*/)
             G4cout << "for the local thread " << G4endl << G4endl;
         }
 
-        
-        G4cout << " ENeutrons : mean = "
-        << G4BestUnit(analysisManager->GetH1(0)->mean(), "Energy")
-        << " rms = "
-        << G4BestUnit(analysisManager->GetH1(0)->rms(),  "Energy") << G4endl;
+        G4int nofEvents = run->GetNumberOfEvent();
+        G4cout << nofEvents << " events were processed." << G4endl;
 
-        G4cout << " Xpos : mean = "
-        << G4BestUnit(analysisManager->GetH2(0)->mean_x(), "Length")
-        << " rms = "
-        << G4BestUnit(analysisManager->GetH2(0)->rms_x(),  "Length") << G4endl;
-        
-        G4cout << " Ypos : mean = "
-        << G4BestUnit(analysisManager->GetH2(1)->mean_y(), "Length")
-        << " rms = "
-        << G4BestUnit(analysisManager->GetH2(1)->rms_y(),  "Length") << G4endl;
+        G4cout << " Number of neutrons in the whole detector= "
+        << analysisManager->GetH1(0)->entries() << G4endl;
+        G4cout << " their average energy is = "
+        << analysisManager->GetH1(0)->mean() << " eV "
+        << ", their root mean square is= "
+        << analysisManager->GetH1(0)->rms()<< " eV" << G4endl;
+
+        G4cout << " " << G4endl;
+        G4cout << " Number of neutrons in transmission detector= "
+               << analysisManager->GetH1(1)->entries() << G4endl;
+        G4cout << " their average energy is = "
+               << analysisManager->GetH1(1)->mean() << " eV "
+               << ", their root mean square is= "
+               << analysisManager->GetH1(1)->rms() << " eV" << G4endl;
+
+        G4cout << " " << G4endl;
+        G4cout << " Number of neutrons that come out of solid= "
+               << analysisManager->GetH1(2)->entries() << G4endl;
+        G4cout << " their average energy is = "
+               << analysisManager->GetH1(2)->mean() << " eV "
+               << ", their root mean square is= "
+               << analysisManager->GetH1(2)->rms() << " eV" << G4endl;
+
+        G4cout << " " << G4endl;
+        G4cout << " Number of neutrons that come out of side= "
+               << analysisManager->GetH1(5)->entries() << G4endl;
+        G4cout << " their average energy is = "
+               << analysisManager->GetH1(5)->mean() << " eV "
+               << ", their root mean square is= "
+               << analysisManager->GetH1(5)->rms() << " eV" << G4endl;
+
+        G4cout << " " << G4endl;
+        G4cout << " Number of gamma rays produced in the foil is = "
+               << analysisManager->GetH1(4)->entries() << G4endl;
+        G4cout << " their average energy is = "
+               << G4BestUnit(analysisManager->GetH1(4)->mean(), "Energy")
+               << ", their root mean square is= "
+               << G4BestUnit(analysisManager->GetH1(4)->rms(),  "Energy") << G4endl;
+        G4cout << " " << G4endl;
     }
     
     // save histograms & ntuple

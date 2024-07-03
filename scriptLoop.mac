@@ -2,7 +2,7 @@
 
 # Define the energy values
 energy_values=("1000") #eV ("1" "100")
-macro="gps.mac"
+macro="monoGPS.mac"
 #Define list of materials
 materialsNC=("PMMA_NC" "PP_NC" "H2O_NC")
 materialsG4=("PMMA_G4" "PP_G4" "H2O_G4")
@@ -35,7 +35,7 @@ DC="../src/B4cDetectorConstruction.cc"
 
 
 # Get the 9th line of run1.mac to Get number of neutrons
-neutrons=$(sed -n '9p' run1.mac)
+neutrons=$(sed -n '5p' ${macro})
 
 # Write the 9th line of run1.mac to OUT.txt
 echo "Running with: $neutrons neutrons" > OUT.txt
@@ -44,8 +44,8 @@ for material in "${materialsNC[@]}"; do
         polymer=${!material}
         Z=${material}_Z
         thickness=${!Z}
-	sed -i "139s/.*/${polymer}/g" "$DC"
-	sed -i "128s/.*/${thickness}/g" "$DC"
+	sed -i "142s/.*/${polymer}/g" "$DC"
+	sed -i "127s/.*/${thickness}/g" "$DC"
 	echo "Running with ${material} material" | tee -a OUT.txt
 	make >> make_output.txt 
 
@@ -54,7 +54,7 @@ for material in "${materialsNC[@]}"; do
 	    # Change energy
 	    sed -i "5s/.*/\/gps\/energy ${energy} eV/" ${macro}
 	    echo "Running with energy ${energy} eV" | tee -a OUT.txt
-	    { time ./exampleB4c -m ${macro} | grep "Will use this space to grep transmission later" | wc -l; } 2>&1 | tee -a OUT.txt
+	    { time ./exampleB4c -m ${macro} | grep -A 12 "events were processed"; } 2>&1 | tee -a OUT.txt
 	    mv B4.root "B4_${energy}eV_${material}.root"
 	done
 done
@@ -63,8 +63,8 @@ for material in "${materialsG4[@]}"; do
         polymer=${!material}
         Z=${material}_Z
         thickness=${!Z}
-	sed -i "139s/.*/${polymer}/g" "$DC"
-	sed -i "128s/.*/${thickness}/g" "$DC"
+	sed -i "142s/.*/${polymer}/g" "$DC"
+	sed -i "127s/.*/${thickness}/g" "$DC"
 	echo "Running with ${material} material" | tee -a OUT.txt
 	make >> make_output.txt 
 
@@ -73,7 +73,7 @@ for material in "${materialsG4[@]}"; do
 	    # Change energy
 	    sed -i "5s/.*/\/gps\/energy ${energy} eV/" ${macro}
 	    echo "Running with energy ${energy} eV" | tee -a OUT.txt
-	    { time ./exampleB4c -m ${macro} | grep "Will use this space to grep transmission later" | wc -l; } 2>&1 | tee -a OUT.txt
+	    { time ./exampleB4c -m ${macro} | grep -A 12 "events were processed";  } 2>&1 | tee -a OUT.txt
 	    mv B4.root "B4_${energy}eV_${material}.root"
 	done
 done

@@ -36,16 +36,21 @@ class B4cCalorHit : public G4VHit
 
     // methods to handle data
     void Add(G4double de, G4double dl);
-    void AddNeutron(G4double neutronE);
-    void AddPosition(G4double posx, G4double posy);
+    void AddNeutronInDetector(G4double neutronE);
+    void AddPositionInDetector(G4double posx, G4double posy);
+    void AddBoundaryTracking(G4ThreeVector posOnBoundary, G4double EOnBoundary);
+    void AddGammasInFoil(std::vector<G4double> gammaEnergies);
 
     // get methods
     G4double GetEdep() const;
     G4double GetTrackLength() const;
-    G4int GetNNeutrons() const;
-    G4double GetENeutrons() const;
-    G4double GetXpos() const;
-    G4double GetYpos() const;
+    G4int GetNNeutronsInDetector() const;
+    G4double GetENeutronsInDetector() const;
+    G4double GetXposInDetector() const;
+    G4double GetYposInDetector() const;
+    G4ThreeVector GetBoundaryPosition() const;
+    G4double GetBoundaryEnergy() const;
+    std::vector<G4double> GetGammaFoilEnergies() const;
 
 
 private:
@@ -55,6 +60,10 @@ private:
     G4double eNeutron;
     G4double xPos;
     G4double yPos;
+    G4ThreeVector boundaryVector;
+    G4double boundaryEnergy;
+    std::vector<G4double> gammaEnergies;
+
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -96,20 +105,32 @@ inline G4double B4cCalorHit::GetTrackLength() const {
   return fTrackLength; 
 }
 
-inline G4int B4cCalorHit::GetNNeutrons() const {
+inline G4int B4cCalorHit::GetNNeutronsInDetector() const {
   return int(fNeutrons);
 }
 
-inline G4double B4cCalorHit::GetENeutrons() const {
+inline G4double B4cCalorHit::GetENeutronsInDetector() const {
   return eNeutron;
 }
 
-inline G4double B4cCalorHit::GetXpos() const {
+inline G4double B4cCalorHit::GetXposInDetector() const {
   return xPos;
 }
 
-inline G4double B4cCalorHit::GetYpos() const {
+inline G4double B4cCalorHit::GetYposInDetector() const {
   return yPos;
+}
+
+inline G4ThreeVector B4cCalorHit::GetBoundaryPosition() const {
+  return boundaryVector;
+}
+
+inline G4double B4cCalorHit::GetBoundaryEnergy() const {
+    return boundaryEnergy;
+}
+
+inline std::vector<G4double> B4cCalorHit::GetGammaFoilEnergies() const {
+    return gammaEnergies;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

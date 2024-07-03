@@ -29,9 +29,11 @@ private:
   void PrintEventStatistics(G4double absoEdep, G4double absoTrackLength,
                             G4double gapEdep, G4double xPos, G4double yPos, G4ThreeVector gp) const;
   
-  // data members                   
-  G4int  fAbsHCID;
-  G4int  fGapHCID;
+  // hits collections IDs
+  G4int  fFoilHCID;
+  G4int  fdetectorHCID;
+  G4int  fSampleHCID;
+
 };
                      
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

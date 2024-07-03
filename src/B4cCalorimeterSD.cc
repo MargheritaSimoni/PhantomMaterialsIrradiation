@@ -6,12 +6,14 @@
 #include "G4ios.hh"
 #include "G4UnitsTable.hh"
 
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 B4cCalorimeterSD::B4cCalorimeterSD(
                                    const G4String& name,
                                    const G4String& hitsCollectionName,
-                                   G4int nofCells)
+                                   G4int nofCells
+                                   )
 : G4VSensitiveDetector(name),
 fHitsCollection(nullptr),
 fNofCells(nofCells)
@@ -51,13 +53,13 @@ G4bool B4cCalorimeterSD::ProcessHits(G4Step* step,
                                      G4TouchableHistory*)
 {  
     // energy deposit
-    auto edep = step->GetTotalEnergyDeposit();
+     auto edep = step->GetTotalEnergyDeposit();
     
     // step length
     G4double stepLength = 0.;
     stepLength = step->GetStepLength();
 
-    if ( edep==0. && stepLength == 0. ) return false;
+    if ( stepLength == 0. ) return false;
     auto touchable = (step->GetPreStepPoint()->GetTouchable());
     
     // Get calorimeter cell id
@@ -70,7 +72,7 @@ G4bool B4cCalorimeterSD::ProcessHits(G4Step* step,
         msg << "Cannot access hit " << layerNumber;
         G4Exception("B4cCalorimeterSD::ProcessHits()",
                     "MyCode0004", FatalException, msg);
-    }
+        }
     
     // Get hit for total accounting
     auto hitTotal
@@ -82,28 +84,62 @@ G4bool B4cCalorimeterSD::ProcessHits(G4Step* step,
     
     // Qui prende la definizione della particle ID (pid)
     auto pid = step->GetTrack()->GetDefinition()->GetParticleName();
-    
+    auto volumeName = step->GetPreStepPoint()->GetPhysicalVolume()->GetName();
+
     // Questa funzione controlla se la traccia passa dal volume xtal al volume pmt
-    G4bool neutronCross = Mcross(step, "AirLayer", "Detector");
-    
-    //se un fotone ottico passa dal cristallo al pmt entra in questo blocco
-    if (pid == "neutron" && neutronCross) { // replaced opticalphoton with NEUTRON
+    if (volumeName == "Detector"){
+    G4bool isNeutronInDetector = Mcross(step, "Detector", "World");
+        if (pid == "neutron" && isNeutronInDetector) {
 
-        // prende l'energia cinetica del fotone e chiama la funzione AddPhoton() che è definita nel CalorHit.cc, è semplicemente un contatore che aggiunge +1 al numero di fotoni totali
-        G4double neutronE = step->GetPostStepPoint()->GetKineticEnergy();
-        G4ThreeVector pos = step->GetPostStepPoint()->GetPosition();
-        hit->AddNeutron(neutronE);
-        hit->AddPosition(pos.x(), pos.y());
-        hitTotal->AddNeutron(neutronE);
-        hitTotal->AddPosition(pos.x(), pos.y());
-
-        //G4ThreeVector pos = step->GetPostStepPoint()->GetPosition();
-        //hitTotal->AddPosition(pos.x, pos.y);
-
-        //G4cout<<pid<<" - pre: "<<step->GetPreStepPoint()->GetPhysicalVolume()->GetName()<< " - post: "<<step->GetPostStepPoint()->GetPhysicalVolume()->GetName()<< "- photon Cross: "<< neutronCross<< " Neutron Energy: "<<neutronE<<G4endl;
-        // questo termina la traccia in modo da risparmiare tempo nella simulazione
-        Kill(step);
+            G4double neutronE = step->GetPreStepPoint()->GetKineticEnergy();
+            G4ThreeVector pos = step->GetPreStepPoint()->GetPosition();
+            hit->AddNeutronInDetector(neutronE);
+            hit->AddPositionInDetector(pos.x(), pos.y());
+            hitTotal->AddNeutronInDetector(neutronE);
+            hitTotal->AddPositionInDetector(pos.x(), pos.y());
+            Kill(step);
+        }
     }
+
+    if (volumeName == "VolumePolymer") {
+        G4bool isNeutronOutOfBox = Mcross(step, "VolumePolymer", "World");
+        if (pid == "neutron" && isNeutronOutOfBox) {
+
+            G4double neutronE = step->GetPostStepPoint()->GetKineticEnergy();
+            G4ThreeVector pos = step->GetPostStepPoint()->GetPosition();
+            hit->AddBoundaryTracking(pos, neutronE);
+            hitTotal->AddBoundaryTracking(pos, neutronE);
+
+        }
+    }
+
+    if (volumeName == "foilCd") {
+        // Get the secondary particles produced in the current step
+        const std::vector<const G4Track*>* secondaries = step->GetSecondaryInCurrentStep();
+
+        G4int trackID = step->GetTrack()->GetTrackID();
+        // Loop over the secondary particles
+        if (!secondaries->empty() && trackID==1 ){
+                std::vector<G4double> gammaEnergies;
+            for (size_t i = 0; i < secondaries->size(); ++i) {
+                const G4Track* secondaryTrack = (*secondaries)[i];
+
+                // Get the particle definition of the secondary particle
+                G4ParticleDefinition* particle = secondaryTrack->GetDefinition();
+
+                // Now you can access information about the secondary particle, for example its name
+                G4String particleName = particle->GetParticleName();
+                if (particleName == "gamma"){
+                    G4double gammaEnergy = secondaryTrack->GetKineticEnergy();
+                    gammaEnergies.push_back(gammaEnergy);
+                }
+            }
+            hit->AddGammasInFoil(gammaEnergies);
+            hitTotal->AddGammasInFoil(gammaEnergies);
+        }
+
+    }
+
     return true;
 }
 

@@ -7,6 +7,7 @@
 
 #include <vector>
 
+
 class G4Step;
 class G4HCofThisEvent;
 
@@ -20,10 +21,12 @@ class G4HCofThisEvent;
 
 class B4cCalorimeterSD : public G4VSensitiveDetector
 {
+
   public:
     B4cCalorimeterSD(const G4String& name, 
                      const G4String& hitsCollectionName, 
-                     G4int nofCells);
+                     G4int nofCells
+                     );
     virtual ~B4cCalorimeterSD();
   
     // methods from base class
