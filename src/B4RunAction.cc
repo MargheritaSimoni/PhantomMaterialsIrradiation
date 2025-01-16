@@ -35,15 +35,15 @@ B4RunAction::B4RunAction()
     //
     
     // Creating histograms // name and description of istograms
-    analysisManager->CreateH1("ENeutron","Neutron Energy in Detector",200, 0.5e-04*eV, 130*eV,"eV","none","log"); // third entry is type of binning (log binning)//nb min can't be 0 in log scale//nb da anche il max dell'istogramma
+    analysisManager->CreateH1("ENeutron","Neutron Energy in Detector",200, 0.5e-04*eV, 14.1*MeV,"eV","none","log"); // third entry is type of binning (log binning)//nb min can't be 0 in log scale//nb da anche il max dell'istogramma
     analysisManager->SetH1XAxisTitle(0, "Energy [eV]");
     analysisManager->SetH1YAxisTitle(0, "Counts");
 
-    analysisManager->CreateH1("TENeutron","Transmitted neutron Energy ",200, 0.5e-04*eV, 130*eV,"eV","none","log"); // third entry is type of binning (log binning)//nb min can't be 0 in log scale//nb da anche il max dell'istogramma
+    analysisManager->CreateH1("TENeutron","Transmitted neutron Energy ",200, 0.5e-04*eV, 14.1*MeV,"eV","none","log"); // third entry is type of binning (log binning)//nb min can't be 0 in log scale//nb da anche il max dell'istogramma
     analysisManager->SetH1XAxisTitle(1, "Energy [eV]");
     analysisManager->SetH1YAxisTitle(1, "Counts");
 
-    analysisManager->CreateH1("EBoundary","Energy on boundary of solid ",200, 0.5e-04*eV, 130*eV,"eV","none","log"); // third entry is type of binning (log binning)//nb min can't be 0 in log scale//nb da anche il max dell'istogramma
+    analysisManager->CreateH1("EBoundary","Energy on boundary of solid ",200, 0.5e-04*eV,14.1*MeV,"eV","none","log"); // third entry is type of binning (log binning)//nb min can't be 0 in log scale//nb da anche il max dell'istogramma
     analysisManager->SetH1XAxisTitle(2, "Energy [eV]");
     analysisManager->SetH1YAxisTitle(2, "Counts");
 
@@ -51,33 +51,45 @@ B4RunAction::B4RunAction()
     analysisManager->SetH1XAxisTitle(3, "z [cm]");
     analysisManager->SetH1YAxisTitle(3, "Counts");
 
-    analysisManager->CreateH1("EGamma","Energy of gamma from foil ",200, 10.*eV, 10*MeV,"MeV","none","log"); // third entry is type of binning (log binning)//nb min can't be 0 in log scale//nb da anche il max dell'istogramma
+    analysisManager->CreateH1("EGamma","Energy of gamma from foil ",200, 100.*eV, 10*MeV,"MeV","none","log"); // third entry is type of binning (log binning)//nb min can't be 0 in log scale//nb da anche il max dell'istogramma
     analysisManager->SetH1XAxisTitle(4, "Energy [MeV]");
     analysisManager->SetH1YAxisTitle(4, "Counts");
 
-    analysisManager->CreateH1("ENside","Energy of neutrons that come out of one side ",200, 0.5e-04*eV, 130*eV,"eV","none","log"); // third entry is type of binning (log binning)//nb min can't be 0 in log scale//nb da anche il max dell'istogramma
+    analysisManager->CreateH1("ENside","Energy of neutrons that come out of one side ",200, 0.5e-04*eV, 14.1*MeV,"eV","none","log"); // third entry is type of binning (log binning)//nb min can't be 0 in log scale//nb da anche il max dell'istogramma
     analysisManager->SetH1XAxisTitle(5, "Energy [eV]");
     analysisManager->SetH1YAxisTitle(5, "Counts");
+
+    analysisManager->CreateH1("E0","Initial Neutron Energy",200, 0.5e-04*eV, 14.1*MeV,"eV","none","log"); // third entry is type of binning (log binning)//nb min can't be 0 in log scale//nb da anche il max dell'istogramma
+    analysisManager->SetH1XAxisTitle(6, "Energy [eV]");
+    analysisManager->SetH1YAxisTitle(6, "Counts");
+
 
     //2D istograms
     analysisManager->CreateH2("DetPos","Position in detector", 200, -10.*cm, 10.*cm, 200, -10.*cm, 10.*cm, "cm", "cm");
     analysisManager->SetH2XAxisTitle(0, "x [cm]");
     analysisManager->SetH2YAxisTitle(0, "y [cm]");
 
-    analysisManager->CreateH2("TPos","Position in transmission detector", 200, -2.6*cm, 2.6*cm, 200, -2.6*cm, 2.6*cm, "cm", "cm");
+    analysisManager->CreateH2("TPos","Position in transmission detector", 200, -5*cm, 5*cm, 200, -5*cm, 5*cm, "cm", "cm");
     analysisManager->SetH2XAxisTitle(1, "x [cm]");
     analysisManager->SetH2YAxisTitle(1, "y [cm]");
 
-    analysisManager->CreateH2("GenPos","Generator Position", 200, -2.6*cm, 2.6*cm, 200, -2.6*cm, 2.6*cm, "cm", "cm");
+    analysisManager->CreateH2("GenPos","Generator Position", 200, -5*cm, 5*cm, 200, -5*cm, 5*cm, "cm", "cm");
     analysisManager->SetH2XAxisTitle(2, "x [cm]");
     analysisManager->SetH2YAxisTitle(2, "y [cm]");
+
+    analysisManager->CreateH2("SidePos","position on side of detector", 200, -5*cm, 5*cm, 200, -5.4*cm, 5.4*cm, "cm", "cm");
+    analysisManager->SetH2XAxisTitle(3, "x [cm]");
+    analysisManager->SetH2YAxisTitle(3, "y [cm]");
 
     // Creating ntuple
     //
     analysisManager->CreateNtuple("B4", "Data Tree");
-    analysisManager->CreateNtupleDColumn("Neutron_ene");
-    analysisManager->CreateNtupleDColumn("X");
-    analysisManager->CreateNtupleDColumn("Y");
+    analysisManager->CreateNtupleDColumn("BoundaryEnergy");
+    analysisManager->CreateNtupleDColumn("BoundaryX");
+    analysisManager->CreateNtupleDColumn("BoundaryY");
+    analysisManager->CreateNtupleDColumn("BoundaryZ");
+
+
     //analysisManager->CreateNtupleDColumn("X0");
     //analysisManager->CreateNtupleDColumn("Y0");
     analysisManager->FinishNtuple();

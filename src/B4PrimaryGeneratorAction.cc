@@ -74,8 +74,8 @@ B4PrimaryGeneratorAction::~B4PrimaryGeneratorAction()
 void B4PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
 
-    G4double halfX = 2.5 * cm;
-    G4double halfY = 2.5 * cm;
+    G4double halfX = 5. * cm;
+    G4double halfY = 5. * cm;
     G4double px = G4UniformRand() * (2.* halfX) - halfX;
     G4double py = G4UniformRand() * (2.* halfY) - halfY;
 

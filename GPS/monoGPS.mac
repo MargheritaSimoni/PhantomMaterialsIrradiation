@@ -1,0 +1,9 @@
+# it's initialized inside main to install NCrystal
+#/run/initialize
+
+/gps/particle neutron
+/gps/energy 1000 eV
+
+/run/printProgress 10000000
+/run/beamOn 10000000
+

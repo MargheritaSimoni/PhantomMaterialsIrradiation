@@ -122,8 +122,8 @@ void B4cEventAction::EndOfEventAction(const G4Event* event)
     G4ThreeVector generatorPosition = G4ThreeVector(pv->GetX0(),pv->GetY0(),pv->GetZ0());
 
     //Qui ci sono ulteriori info sulla particella primaria tipo energia ed impulso che in questo momento non stai usando, ma se per esempio vuoi usare un fascio non parallelo puoi decommentare qui
-    //G4PrimaryParticle* pp = pv->GetPrimary();
-    //G4double generatorEnergy = pp->GetKineticEnergy() + pp->GetMass();
+    G4PrimaryParticle* pp = pv->GetPrimary();
+    G4double generatorEnergy = pp->GetKineticEnergy(); // + pv->GetMass();
     //G4ThreeVector generatorMomentum =  pp->GetMomentumDirection();
 
     // Print per event (modulo n)
@@ -148,20 +148,20 @@ void B4cEventAction::EndOfEventAction(const G4Event* event)
     //Qui salva le informazioni nel tree e negli istogrammi, la funzione GetNPhotons() è definita nel CalorHit.hh e semplicemente legge il numero di fotoni salvato nella variabile fPhotons della collezione di hit.
 
     ///////////////////////// fill histograms //////////////////////////
-    //Detector
+    //Neutron generator
+    analysisManager->FillH1(6,generatorEnergy);
+    analysisManager->FillH2(2, generatorPosition[0], generatorPosition[1]);
+
+    //transmission detector
     if(detectorHit->GetENeutronsInDetector()>=0 ){
-        bool check = false;
         analysisManager->FillH1(0, detectorHit->GetENeutronsInDetector());
-        if(detectorHit->GetXposInDetector()>=-25 && detectorHit->GetYposInDetector()>=-25 && detectorHit->GetXposInDetector()<=25 && detectorHit->GetYposInDetector()<=25){
-            analysisManager->FillH1(1, detectorHit->GetENeutronsInDetector());
-            check = true;
-        }
         analysisManager->FillH2(0, detectorHit->GetXposInDetector(), detectorHit->GetYposInDetector());
-        if(check == true){
+        if(detectorHit->GetXposInDetector()>=-50 && detectorHit->GetYposInDetector()>=-50 && detectorHit->GetXposInDetector()<=50 && detectorHit->GetYposInDetector()<=50){
+            analysisManager->FillH1(1, detectorHit->GetENeutronsInDetector());
             analysisManager->FillH2(1, detectorHit->GetXposInDetector(), detectorHit->GetYposInDetector());
         }
-    }//}
-    analysisManager->FillH2(2, generatorPosition[0], generatorPosition[1]);
+
+    }
 
     //Sample
     if(sampleHit->GetBoundaryEnergy()>=0 ) {
@@ -179,12 +179,16 @@ void B4cEventAction::EndOfEventAction(const G4Event* event)
 
     if(sampleHit->GetBoundaryPosition().x()>=10./2*CLHEP::cm ) {
         analysisManager->FillH1(5, sampleHit->GetBoundaryEnergy());
+        analysisManager->FillH2(3, sampleHit->GetBoundaryPosition().z(), sampleHit->GetBoundaryPosition().y());
+
     }
 
     // fill ntuple
-    analysisManager->FillNtupleDColumn(0, detectorHit->GetENeutronsInDetector());
-    analysisManager->FillNtupleDColumn(1, detectorHit->GetXposInDetector());
-    analysisManager->FillNtupleDColumn(2, detectorHit->GetYposInDetector());
+    analysisManager->FillNtupleDColumn(0, sampleHit->GetBoundaryEnergy());
+    analysisManager->FillNtupleDColumn(1, sampleHit->GetBoundaryPosition().x());
+    analysisManager->FillNtupleDColumn(2, sampleHit->GetBoundaryPosition().y());
+    analysisManager->FillNtupleDColumn(3, sampleHit->GetBoundaryPosition().z());
+
     //analysisManager->FillNtupleDColumn(3, generatorPosition[0]);
     //analysisManager->FillNtupleDColumn(4, generatorPosition[1]);
 

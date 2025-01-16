@@ -1,0 +1,13 @@
+# it's initialized inside main to install NCrystal
+#/run/initialize
+
+/gps/particle neutron
+
+# energy distribution
+/gps/ene/type Arb
+/gps/hist/file ./GPS/spectrum_VESUVIO_200points.dat  
+/gps/hist/inter Lin
+
+
+/run/printProgress 10000
+/run/beamOn 100000

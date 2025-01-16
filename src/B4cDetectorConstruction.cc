@@ -68,28 +68,25 @@ void B4cDetectorConstruction::DefineMaterials()
     auto nistManager = G4NistManager::Instance();
     // air
     nistManager->FindOrBuildMaterial("G4_AIR");
-    // water
-    nistManager->FindOrBuildMaterial("G4_WATER"); //nb.: water is one of the only three materials that are converted to work with thermal neutron libraries
-
-    // PMMA
+    // Polymers
     nistManager->FindOrBuildMaterial("G4_PLEXIGLASS");
     nistManager->FindOrBuildMaterial("G4_POLYVINYL_CHLORIDE");
     nistManager->FindOrBuildMaterial("G4_POLYPROPYLENE");
+    nistManager->FindOrBuildMaterial("G4_POLYSTYRENE");
 
     // Cd
     nistManager->FindOrBuildMaterial("G4_Cd");
-
+    nistManager->FindOrBuildMaterial("G4_Au");
     // MATERIALS DEFINED USING THERMAL LIBRARIES CROSS SECTIONS
 //PMMA uses thermal XS of H inside polyethylene
-    G4Element* elC = nistManager->FindOrBuildElement("C");
-    G4Element* elO = nistManager->FindOrBuildElement("O");
+/*
     //G4Element* elOO = new G4Element("Oxygen" ,"O", z= 8., 16.00*g/mole);
     G4Element* elTSHPE = new G4Element("TS_H_of_Polyethylene" , "h_polyethylene", 1.0, 1.0079*g/mole);
     G4Material* matPMMA_TS = new G4Material("G4_PLEXIGLASS_TS", density=1.18*g/cm3, 3, kStateSolid,  293.15*kelvin);
     matPMMA_TS->AddElement(elTSHPE,8);
     matPMMA_TS->AddElement(elO,2);
     matPMMA_TS->AddElement(elC, 5);
-
+*/
 
     //MATERIALS DEFINED USING NCRYSTAL LIBRARIES nb: NC has a standard temperature of 293..15 instead of 273.15 og G4
     //nb.: NC takes the density from the file
@@ -102,8 +99,9 @@ void B4cDetectorConstruction::DefineMaterials()
     G4Material * matPP_NC = G4NCrystal::createMaterial("PP.ncmat");
     matPP_NC->SetName("NC_POLYPROPYLENE");
 
-    G4Material * matH2O_NC = G4NCrystal::createMaterial("LiquidWaterH2O_T293.6K.ncmat");
-    matH2O_NC->SetName("NC_WATER");
+    G4Material * matPS_NC = G4NCrystal::createMaterial("PS.ncmat");
+    matPS_NC->SetName("NC_POLYSTYRENE");
+
 
     // Print materials
     G4cout << *(G4Material::GetMaterialTable()) << G4endl;
@@ -115,43 +113,48 @@ G4VPhysicalVolume* B4cDetectorConstruction::DefineVolumes()
 {
     // Geometry parameters
     // world
-    G4double worldSizeXY = 25. *cm;
-    G4double worldSizeZ  = 25. *cm;
+    G4double worldSizeXY = 100. *cm;
+    G4double worldSizeZ  = 100. *cm;
 
     //detector
     G4double detectorXY =  20.*cm;
-    G4double detectorZ =  0.2*mm;
+    G4double detectorZ =  0.1*mm;
 
     //Polymer solid
     G4double dimPolymerXY=10.*cm;//20.*cm;
-G4double dimPolymerZ=7.714852819736141*cm;
+G4double dimPolymerZ=6.6*cm;
 
     //Cd foil
     G4double foilCdX =  1*mm;
-    G4double foilCdY =  dimPolymerXY;
-    G4double foilCdZ =  dimPolymerZ;
+    G4double foilCdY =  10*cm;
+G4double foilCdZ = 6.6*cm;
 
     // Positions
     G4double samplePositionZ= 0.0; //
-    G4double detectorPositionZ= dimPolymerZ/2.+detectorZ/2.+0.5*cm;//0.5*mm;
-    G4double foilPositionX= foilCdX/2 + dimPolymerXY/2 + 1*mm; //
-    
+    G4double detectorPositionZ= dimPolymerZ/2.+detectorZ/2.+20*cm;//0.5*mm;
+    G4double foilPositionX= foilCdX/2 + dimPolymerXY/2 + 0.1*mm; //
+
+    // Create a rotation matrix
+    G4RotationMatrix* rotAroundWorldAxis = new G4RotationMatrix();
+    rotAroundWorldAxis->rotateY(-0*deg); //45
+    G4RotationMatrix* rotAroundObjectAxis = new G4RotationMatrix();
+    rotAroundObjectAxis->rotateY(0*deg); //45
+
     fNofLayers = 1;
 
     // Get materials
-auto polymer = G4Material::GetMaterial("G4_WATER");
+auto polymer = G4Material::GetMaterial("G4_POLYPROPYLENE");
     auto worldMaterial = G4Material::GetMaterial("Galactic");
-    auto cadmium = G4Material::GetMaterial("G4_Cd");
+    auto foilmat = G4Material::GetMaterial("G4_Au");
 
-    if (  !polymer ||  !worldMaterial || !cadmium ) {
+    if (  !polymer ||  !worldMaterial || !foilmat ) {
         G4ExceptionDescription msg;
         msg << "Cannot retrieve materials already defined.";
         G4Exception("B4DetectorConstruction::DefineVolumes()",
                     "MyCode0001", FatalException, msg);
     }
 
-
-//
+    //
     // World
     //
     auto worldS
@@ -200,7 +203,7 @@ auto polymer = G4Material::GetMaterial("G4_WATER");
             fCheckOverlaps);  // checking overlaps
 
     //
-    // air layer for detector
+    // cadmium foil
     //
 
     auto foilCdS
@@ -210,11 +213,11 @@ auto polymer = G4Material::GetMaterial("G4_WATER");
     auto foilCdLV
             = new G4LogicalVolume(
                     foilCdS,             // its solid
-                    cadmium,      // its material
+                    foilmat,      // its material
                     "foilCdLV");         // its name
     new G4PVPlacement(
-            0,                // no rotation
-            G4ThreeVector(foilPositionX,0,0), // its position
+            rotAroundObjectAxis,                // no rotation
+            (*rotAroundWorldAxis)*G4ThreeVector(foilPositionX,0,0), // its position // multiplying it by the matrix to rotate (nb.: not by its pointer)
             foilCdLV,            // its logical volume
             "foilCd",            // its name
             worldLV,          // its mother  volume

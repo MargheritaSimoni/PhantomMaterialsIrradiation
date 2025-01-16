@@ -12,7 +12,7 @@
 #include "G4UImanager.hh"
 #include "G4UIcommand.hh"
 #include "G4PhysListFactory.hh"
-#include "FTFP_BERT.hh"
+#include "FTFP_BERT_HP.hh"
 #include "QGSP_BIC_HP.hh"
 //#include "G4NeutronHPElastic.hh" // Include header for neutron elastic scattering process
 #include "G4HadronElasticPhysicsHP.hh"
@@ -84,7 +84,7 @@ int main(int argc,char** argv)
   // Choose the Random engine
   //
   G4Random::setTheEngine(new CLHEP::RanecuEngine);
-  long seed=90; // setting seed of random generartor, the line above sets to default, which is 0
+  long seed=40; // setting seed of random generartor, the line above sets to default, which is 0
   G4Random::setTheSeed(seed);
   // Construct the default run manager
   //

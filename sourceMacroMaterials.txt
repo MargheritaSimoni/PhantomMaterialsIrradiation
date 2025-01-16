@@ -4,3 +4,7 @@ ncrystal_hfg2ncmat --formula C2H3Cl --spec 1xCH2+1xCHali  --density 1.38 --title
 ncrystal_hfg2ncmat --formula C5H8O2 --spec 2xCHali+2xCH3   --density 1.18  --title PMMA -o PMMA.ncmat
 
 ncrystal_hfg2ncmat --formula C3H6 --spec 1xCHali+1xCH2+1xCH3   --density 0.9  --title PP -o PP.ncmat
+
+ncrystal_hfg2ncmat --formula C8H8 --spec 1xCHali+1xCH2+5xCHaro   --density 1.  --title PS -o PS.ncmat
+
+
